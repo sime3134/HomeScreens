@@ -9,4 +9,6 @@ public interface DisplayService {
 
     WsConnectContext getDisplaySession(String displayId);
 
+    void closeAllSessions();
+
 }

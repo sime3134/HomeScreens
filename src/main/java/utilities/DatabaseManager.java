@@ -15,7 +15,6 @@ public class DatabaseManager {
     public static MongoDatabase getDatabase() {
         synchronized (lock) {
             if (database == null) {
-                System.out.println(EnvironmentVars.getValue("MONGO_PATH"));
                 mongoClient = MongoClients.create(EnvironmentVars.getValue("MONGO_PATH"));
                 database = mongoClient.getDatabase("HomeScreens");
             }
