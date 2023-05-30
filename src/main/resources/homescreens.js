@@ -3,9 +3,13 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 function connectUser() {
-    const ws = new WebSocket('ws://' + window.location.host + '/connect');
+    let displayId = localStorage.getItem('displayId');
+    const ws = new WebSocket(`ws://` + window.location.host + `/connect/${displayId ? displayId : 'new'}`);
 
     ws.onmessage = function (event) {
-        alert(event.data);
+        const data = JSON.parse(event.data);
+        if (data.type === 'displayId') {
+            localStorage.setItem('displayId', data.displayId);
+        } 
     };
 }

@@ -2,7 +2,6 @@ package service;
 
 import io.javalin.websocket.WsConnectContext;
 
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class DisplayServiceImpl implements DisplayService {
@@ -25,5 +24,11 @@ public class DisplayServiceImpl implements DisplayService {
     public WsConnectContext getDisplaySession(String displayId) {
         return displaySessions.get(displayId);
     }
+
+    @Override
+    public void closeAllSessions() {
+            displaySessions.forEach((displayId, ctx) -> ctx.session.close());
+    }
+
 
 }
