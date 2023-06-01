@@ -3,15 +3,15 @@ package model;
 import java.util.HashMap;
 import java.util.Map;
 
-public class PageData {
-    private String path;
-    private Map<String, Object> data;
-    public PageData(String path) {
+public class Page {
+    private final String path;
+    private final Map<String, Object> data;
+    public Page(String path) {
         this.path = path;
         this.data = new HashMap<>();
     }
 
-    public PageData(String path, Map<String, Object> data) {
+    public Page(String path, Map<String, Object> data) {
         this.path = path;
         this.data = data;
     }

@@ -3,7 +3,7 @@ package repository;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
-import model.PageData;
+import model.Page;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,10 +27,10 @@ class MongoPageRepositoryTest {
 
     @BeforeEach
     void setup() {
-        PageData pageData = new PageData("/test");
-        pageData.addData("temperature", 25);
-        pageData.addData("humidity", 40);
-        repository.insert(pageData);
+        Page page = new Page("/test");
+        page.addData("temperature", 25);
+        page.addData("humidity", 40);
+        repository.insert(page);
     }
 
     @AfterEach
@@ -40,54 +40,54 @@ class MongoPageRepositoryTest {
 
     @Test
     void findByPathInvalid() {
-        PageData pageData = repository.findByPath("/notexist234");
-        assertNull(pageData);
+        Page page = repository.findByPath("/notexist234");
+        assertNull(page);
     }
 
     @Test
     void findByPathValid() {
-        PageData pageData = repository.findByPath("/test");
-        assertNotNull(pageData);
+        Page page = repository.findByPath("/test");
+        assertNotNull(page);
     }
 
     @Test
     void insert() {
-        PageData pageData = new PageData("/test2");
-        pageData.addData("temperature", 25);
-        pageData.addData("humidity", 40);
+        Page page = new Page("/test2");
+        page.addData("temperature", 25);
+        page.addData("humidity", 40);
 
-        repository.insert(pageData);
+        repository.insert(page);
 
-        PageData fetchedPageData = repository.findByPath("/test2");
-        assertEquals(pageData.getData(), fetchedPageData.getData().get("data"));
+        Page fetchedPage = repository.findByPath("/test2");
+        assertEquals(page.getData(), fetchedPage.getData().get("data"));
     }
 
     @Test
     void insertDuplicate() {
-        PageData pageData = new PageData("/test");
-        pageData.addData("temperature", 25);
-        pageData.addData("humidity", 40);
+        Page page = new Page("/test");
+        page.addData("temperature", 25);
+        page.addData("humidity", 40);
 
-        assertDoesNotThrow(() -> repository.insert(pageData));
+        assertDoesNotThrow(() -> repository.insert(page));
     }
 
     @Test
     void deleteByPathInvalid() {
-        PageData pageData = repository.findByPath("/notexist234");
-        assertNull(pageData);
+        Page page = repository.findByPath("/notexist234");
+        assertNull(page);
 
         assertDoesNotThrow(() -> repository.deleteByPath("/notexist234"));
 
-        pageData = repository.findByPath("/notexist234");
+        page = repository.findByPath("/notexist234");
 
-        assertNull(pageData);
+        assertNull(page);
     }
 
     @Test
     void deleteByPathValid() {
         repository.deleteByPath("/test");
-        PageData pageData = repository.findByPath("/test");
-        assertNull(pageData);
+        Page page = repository.findByPath("/test");
+        assertNull(page);
     }
 
 }

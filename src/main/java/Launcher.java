@@ -6,6 +6,8 @@ import org.slf4j.LoggerFactory;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.FileTemplateResolver;
+import repository.DisplayRepository;
+import repository.MongoDisplayRepository;
 import service.*;
 import utilities.DatabaseManager;
 import io.javalin.Javalin;
@@ -21,38 +23,42 @@ import java.io.IOException;
 public class Launcher {
     private static final Logger LOGGER = LoggerFactory.getLogger(Launcher.class);
     private static Javalin app = null;
+    private static DisplayService displayService;
 
     public static void main(String[] args) {
-        DisplayService displayService = new DisplayServiceImpl();
-        WebSocketConfigurator webSocketConfigurator = new WebSocketConfigurator(displayService);
+        ApiConfigurator apiConfigurator;
+        WebSocketConfigurator webSocketConfigurator;
+        loadEnvironmentVariables();
 
-        loadEnvironmentVariables(displayService);
+        createDirectories();
 
-        createDirectories(displayService);
-
-        copyScripts(displayService);
-
-        TemplateEngine templateEngine = getTemplateEngine();
-
-        app = launchApp(templateEngine, webSocketConfigurator);
-        LOGGER.info("App started successfully");
+        copyScriptAndHomepage();
 
         try {
             MongoDatabase database = DatabaseManager.getDatabase();
 
             if (database != null) {
                 LOGGER.info("Database connected successfully");
+                DisplayRepository displayRepository = new MongoDisplayRepository(database);
+                displayService = new DisplayServiceImpl(displayRepository);
+                apiConfigurator = new ApiConfiguratorImpl(displayService);
+                webSocketConfigurator = new WebSocketConfigurator(displayService);
+
+                TemplateEngine templateEngine = getTemplateEngine();
+
+                app = launchApp(templateEngine, webSocketConfigurator, apiConfigurator);
                 createPages(database);
             }else {
-                LOGGER.error("Error connecting to database");
-                cleanUpResources(displayService);
+                LOGGER.error("Error connecting to database, closing application");
+                cleanUpResources();
             }
         } catch (Exception e) {
             LOGGER.error("Error starting application", e);
-            cleanUpResources(displayService);
+            cleanUpResources();
         }
+        LOGGER.info("App started successfully");
 
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> cleanUpResources(displayService)));
+        Runtime.getRuntime().addShutdownHook(new Thread(Launcher::cleanUpResources));
     }
 
     private static void createPages(MongoDatabase database) throws IOException {
@@ -63,55 +69,63 @@ public class Launcher {
         LOGGER.info("Pages created successfully");
     }
 
-    private static void copyScripts(DisplayService displayService) {
+    private static void copyScriptAndHomepage() {
         try {
             FileUtils.copyIfNotExists("/homescreens.js", Paths.SCRIPT_FOLDER_PATH + "/homescreens.js");
+            FileUtils.copyIfNotExists("/home/index.html", Paths.APP_FOLDER_PATH + "/home/index.html");
+            FileUtils.copyIfNotExists("/home/style.css", Paths.APP_FOLDER_PATH + "/home/style.css");
+            FileUtils.copyIfNotExists("/home/scripts.js", Paths.APP_FOLDER_PATH + "/home/scripts.js");
         } catch (IOException e) {
-            LOGGER.error("Error copying css file", e);
-            cleanUpResources(displayService);
+            LOGGER.error("Error copying script and default homepage", e);
+            cleanUpResources();
         }
-        LOGGER.info("Script copied successfully to {}", Paths.SCRIPT_FOLDER_PATH);
+        LOGGER.info("Script and homepage copied successfully to {}", Paths.SCRIPT_FOLDER_PATH);
     }
 
-    private static void loadEnvironmentVariables(DisplayService displayService) {
+    private static void loadEnvironmentVariables() {
         try {
             EnvironmentVars.load();
         } catch (IOException e) {
             LOGGER.error("Error loading environment variables", e);
-            cleanUpResources(displayService);
+            cleanUpResources();
         }
         LOGGER.info("Environment variables loaded successfully");
     }
 
-    private static void createDirectories(DisplayService displayService) {
+    private static void createDirectories() {
         try {
             FileUtils.createDirectoryIfNotExists(Paths.APP_FOLDER_PATH);
+            FileUtils.createDirectoryIfNotExists(Paths.APP_FOLDER_PATH + "/home");
             FileUtils.createDirectoryIfNotExists(Paths.LOG_FOLDER_PATH);
             FileUtils.createDirectoryIfNotExists(Paths.SCRIPT_FOLDER_PATH);
         }catch (IOException e) {
             LOGGER.error("Error creating directories", e);
-            cleanUpResources(displayService);
+            cleanUpResources();
         }
         LOGGER.info("Folders created successfully");
     }
 
-    private static void cleanUpResources(DisplayService displayService) {
+    private static void cleanUpResources() {
         DatabaseManager.close();
         if(app != null) {
-            displayService.closeAllSessions();
+            if(displayService != null) {
+                displayService.closeAllSessions();
+            }
             app.close();
         }
     }
 
     @NotNull
     private static Javalin launchApp(TemplateEngine templateEngine,
-                                     WebSocketConfigurator webSocketConfigurator) {
+                                     WebSocketConfigurator webSocketConfigurator,
+                                     ApiConfigurator apiConfigurator) {
         Javalin app = Javalin.create(config -> {
             JavalinThymeleaf.init(templateEngine);
             config.staticFiles.add(Paths.ROOT_FOLDER_PATH, Location.EXTERNAL);
         });
 
         webSocketConfigurator.configure(app);
+        apiConfigurator.configure(app);
 
         app.start(Integer.parseInt(EnvironmentVars.getValue("PORT")));
         return app;

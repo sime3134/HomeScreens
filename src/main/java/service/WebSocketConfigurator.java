@@ -1,12 +1,11 @@
 package service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.javalin.Javalin;
+import model.dto.ConnectedDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
-import java.util.Map;
 import java.util.UUID;
 
 public class WebSocketConfigurator {
@@ -14,11 +13,9 @@ public class WebSocketConfigurator {
     private static final Logger LOGGER = LoggerFactory.getLogger(WebSocketConfigurator.class);
 
     private final DisplayService displayService;
-    private final ObjectMapper objectMapper;
 
     public WebSocketConfigurator(DisplayService displayService) {
         this.displayService = displayService;
-        this.objectMapper = new ObjectMapper();
     }
 
     public void configure(Javalin app) {
@@ -33,8 +30,8 @@ public class WebSocketConfigurator {
                 ctx.attribute("displayId", displayId);
                 displayService.addDisplaySession(displayId, ctx);
                 LOGGER.info("Display session connected: {}", displayId);
-                Map<String, String> response = Map.of("displayId", displayId, "type", "displayId");
-                ctx.send(objectMapper.writeValueAsString(response));
+                ConnectedDTO response = new ConnectedDTO(displayId, displayService.isDisplayRegistered(displayId));
+                ctx.send(response);
             });
             ws.onMessage(ctx -> {
                 //TODO: Sending messages to other screens? Home screen summary etc.

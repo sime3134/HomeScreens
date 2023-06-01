@@ -1,13 +1,13 @@
 package repository;
 
-import model.PageData;
+import model.Page;
 
 public interface PageRepository {
-    PageData findByPath(String path);
+    Page findByPath(String path);
 
     void deleteByPath(String path);
 
-    void insert(PageData pageData);
+    void insert(Page page);
 
     void deleteAll();
 }

@@ -1,3 +1,5 @@
+let registered = false;
+
 document.addEventListener("DOMContentLoaded", function () {
     connectUser();
 });
@@ -8,8 +10,12 @@ function connectUser() {
 
     ws.onmessage = function (event) {
         const data = JSON.parse(event.data);
-        if (data.type === 'displayId') {
-            localStorage.setItem('displayId', data.displayId);
+        if (data.type === 'connected') {
+            if(data.registered) {
+                registered = true;
+            } else{
+                localStorage.setItem('displayId', data.displayId);
+            }
         } 
     };
 }

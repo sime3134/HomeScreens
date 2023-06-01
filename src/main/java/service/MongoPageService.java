@@ -1,6 +1,6 @@
 package service;
 
-import model.PageData;
+import model.Page;
 import repository.PageRepository;
 
 public class MongoPageService implements PageService {
@@ -11,7 +11,7 @@ public class MongoPageService implements PageService {
     }
 
     @Override
-    public PageData getPageData(String path) {
+    public Page getPageData(String path) {
         return pageRepository.findByPath(path);
     }
 }

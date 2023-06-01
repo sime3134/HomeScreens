@@ -28,17 +28,17 @@
             <AppenderRef ref="Console"/>
         </Logger>
         <!-- MongoDB driver -->
-        <Logger name="org.mongodb" level="error" additivity="false">
+        <Logger name="org.mongodb" level="warn" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="RollingFile"/>
         </Logger>
         <!-- Javalin -->
-        <Logger name="io.javalin" level="error" additivity="false">
+        <Logger name="io.javalin" level="warn" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="RollingFile"/>
         </Logger>
         <!-- jetty -->
-        <Logger name="org.eclipse.jetty" level="error" additivity="false">
+        <Logger name="org.eclipse.jetty" level="warn" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="RollingFile"/>
         </Logger>

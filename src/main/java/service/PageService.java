@@ -1,7 +1,7 @@
 package service;
 
-import model.PageData;
+import model.Page;
 
 public interface PageService {
-    PageData getPageData(String path);
+    Page getPageData(String path);
 }

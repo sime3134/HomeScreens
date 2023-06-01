@@ -2,7 +2,7 @@ package repository;
 
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import model.PageData;
+import model.Page;
 import org.bson.Document;
 
 public class MongoPageRepository implements PageRepository {
@@ -16,13 +16,13 @@ public class MongoPageRepository implements PageRepository {
     }
 
     @Override
-    public PageData findByPath(String path) {
+    public Page findByPath(String path) {
         MongoCollection<Document> collection = database.getCollection(COLLECTION_NAME);
         Document doc = collection.find(new Document("path", path)).first();
         if (doc == null) {
             return null;
         }
-        return new PageData(doc.getString("path"), doc);
+        return new Page(doc.getString("path"), doc);
     }
 
     @Override
@@ -38,11 +38,11 @@ public class MongoPageRepository implements PageRepository {
     }
 
     @Override
-    public void insert(PageData pageData) {
+    public void insert(Page page) {
         MongoCollection<Document> collection = database.getCollection(COLLECTION_NAME);
         Document doc = new Document()
-                .append("path", pageData.getPath())
-                .append("data", pageData.getData());
+                .append("path", page.getPath())
+                .append("data", page.getData());
         collection.insertOne(doc);
     }
 }
